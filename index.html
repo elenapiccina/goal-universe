@@ -1,0 +1,1705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>My Goal Universe</title>
+
+<style>
+
+:root {
+    --cream: #EEE6D2;
+    --sand: #CFBB99;
+    --sage: #6F8070;
+    --dark: #273329;
+    --white: #fffdf7;
+    --shadow: rgba(39,51,41,.18);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Inter, Arial, sans-serif;
+    background:
+        radial-gradient(circle at 15% 20%, rgba(207,187,153,.28), transparent 25%),
+        radial-gradient(circle at 85% 80%, rgba(111,128,112,.18), transparent 25%),
+        var(--cream);
+    color: var(--dark);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* =========================
+   HEADER
+========================= */
+
+.header {
+    padding: 30px 35px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+.logo {
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -1px;
+}
+
+.subtitle {
+    font-size: 13px;
+    opacity: .65;
+    margin-top: 4px;
+}
+
+.controls {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+button {
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    transition: .2s ease;
+}
+
+.btn {
+    background: var(--sage);
+    color: white;
+    padding: 11px 16px;
+    border-radius: 14px;
+    font-weight: 700;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(111,128,112,.25);
+}
+
+.search {
+    background: rgba(255,255,255,.6);
+    border: 1px solid rgba(111,128,112,.2);
+    border-radius: 14px;
+    padding: 11px 15px;
+    outline: none;
+    width: 190px;
+}
+
+/* =========================
+   PROGRESS OVERVIEW
+========================= */
+
+.overview {
+    display: flex;
+    gap: 14px;
+    padding: 10px 35px 25px;
+    flex-wrap: wrap;
+}
+
+.stat {
+    background: rgba(255,255,255,.45);
+    border: 1px solid rgba(111,128,112,.15);
+    padding: 14px 18px;
+    border-radius: 18px;
+    min-width: 130px;
+    backdrop-filter: blur(10px);
+}
+
+.stat-number {
+    font-size: 24px;
+    font-weight: 800;
+}
+
+.stat-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: .6;
+}
+
+/* =========================
+   CANVAS
+========================= */
+
+#canvas {
+    position: relative;
+    min-height: 720px;
+    margin: 0 25px 30px;
+    border-radius: 30px;
+    border: 1px dashed rgba(111,128,112,.25);
+    overflow: hidden;
+
+    background-image:
+        radial-gradient(rgba(111,128,112,.12) 1px, transparent 1px);
+    background-size: 24px 24px;
+}
+
+/* decorative stars */
+
+.star {
+    position: absolute;
+    color: var(--sand);
+    opacity: .45;
+    animation: twinkle 3s infinite ease-in-out;
+    pointer-events: none;
+}
+
+.star:nth-child(1) { top: 8%; left: 5%; }
+.star:nth-child(2) { top: 22%; right: 8%; animation-delay: .7s; }
+.star:nth-child(3) { top: 65%; left: 10%; animation-delay: 1.2s; }
+.star:nth-child(4) { bottom: 10%; right: 12%; animation-delay: 1.8s; }
+
+@keyframes twinkle {
+    0%,100% { opacity:.2; transform:scale(.8); }
+    50% { opacity:.8; transform:scale(1.2); }
+}
+
+/* =========================
+   GOAL CARD
+========================= */
+
+.goal {
+    position: absolute;
+    width: 350px;
+    min-height: 250px;
+
+    background: rgba(255,253,247,.88);
+    border: 1px solid rgba(111,128,112,.2);
+
+    border-radius: 25px;
+
+    box-shadow:
+        0 12px 35px var(--shadow),
+        0 0 0 rgba(111,128,112,0);
+
+    backdrop-filter: blur(15px);
+
+    transition:
+        box-shadow .3s ease,
+        transform .2s ease;
+
+    user-select: none;
+}
+
+.goal:hover {
+    box-shadow:
+        0 20px 50px rgba(39,51,41,.18),
+        0 0 28px rgba(111,128,112,.28);
+}
+
+.goal.dragging {
+    transform: scale(1.03) rotate(.5deg);
+    box-shadow:
+        0 25px 60px rgba(39,51,41,.25),
+        0 0 40px rgba(111,128,112,.4);
+    z-index: 1000;
+}
+
+/* progress glow */
+
+.goal[data-progress="high"] {
+    box-shadow:
+        0 15px 40px var(--shadow),
+        0 0 30px rgba(111,128,112,.30);
+}
+
+.goal[data-progress="complete"] {
+    box-shadow:
+        0 15px 40px var(--shadow),
+        0 0 45px rgba(207,187,153,.65);
+}
+
+/* =========================
+   CARD HEADER
+========================= */
+
+.goal-header {
+    padding: 17px 18px 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: grab;
+}
+
+.goal-header:active {
+    cursor: grabbing;
+}
+
+.goal-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 13px;
+    background: var(--sage);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 19px;
+}
+
+.goal-title {
+    flex: 1;
+    font-size: 18px;
+    font-weight: 800;
+    outline: none;
+}
+
+.goal-menu {
+    display: flex;
+    gap: 4px;
+}
+
+.icon-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--dark);
+}
+
+.icon-btn:hover {
+    background: var(--cream);
+}
+
+/* =========================
+   PROGRESS
+========================= */
+
+.progress-area {
+    padding: 0 18px 12px;
+}
+
+.progress-top {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    opacity: .65;
+}
+
+.progress-bar {
+    height: 8px;
+    background: var(--cream);
+    border-radius: 20px;
+    overflow: hidden;
+    margin-top: 6px;
+}
+
+.progress-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--sage);
+    border-radius: 20px;
+    transition: width .4s ease;
+}
+
+.progress-slider {
+    width: 100%;
+    accent-color: var(--sage);
+    cursor: pointer;
+}
+
+/* =========================
+   QUICK CONTENT
+========================= */
+
+.quick {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 0 18px 18px;
+}
+
+.quick-item {
+    background: rgba(238,230,210,.55);
+    padding: 9px 11px;
+    border-radius: 12px;
+    font-size: 11px;
+}
+
+.quick-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: .7px;
+    opacity: .55;
+    margin-bottom: 3px;
+}
+
+.quick-value {
+    outline: none;
+    min-height: 15px;
+}
+
+/* =========================
+   EXPANDED MODAL
+========================= */
+
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(39,51,41,.35);
+    backdrop-filter: blur(7px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    padding: 25px;
+    z-index: 5000;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-box {
+    width: min(850px, 100%);
+    max-height: 90vh;
+    overflow-y: auto;
+
+    background: var(--white);
+    border-radius: 28px;
+    padding: 28px;
+
+    box-shadow: 0 30px 90px rgba(39,51,41,.25);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.modal-title {
+    font-size: 25px;
+    font-weight: 800;
+}
+
+.close {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    background: var(--cream);
+    font-size: 18px;
+}
+
+.field {
+    margin-bottom: 18px;
+}
+
+.field label {
+    display: block;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 7px;
+    opacity: .65;
+}
+
+.field textarea,
+.field input,
+.field select {
+    width: 100%;
+    border: 1px solid rgba(111,128,112,.2);
+    background: rgba(238,230,210,.35);
+    border-radius: 13px;
+    padding: 11px;
+    font-family: inherit;
+    outline: none;
+}
+
+.field textarea {
+    min-height: 75px;
+    resize: vertical;
+}
+
+.field input:focus,
+.field textarea:focus {
+    border-color: var(--sage);
+    box-shadow: 0 0 0 3px rgba(111,128,112,.1);
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.delete {
+    background: #9b6f67;
+    color: white;
+    padding: 11px 17px;
+    border-radius: 13px;
+}
+
+.save {
+    background: var(--sage);
+    color: white;
+    padding: 11px 20px;
+    border-radius: 13px;
+    font-weight: 700;
+}
+
+/* =========================
+   CATEGORY
+========================= */
+
+.category {
+    position: absolute;
+    top: -10px;
+    right: 18px;
+
+    background: var(--sand);
+    padding: 5px 10px;
+    border-radius: 10px;
+
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 800;
+}
+
+/* =========================
+   EMPTY
+========================= */
+
+.empty {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.empty-content {
+    text-align: center;
+    opacity: .45;
+}
+
+.empty-content div {
+    font-size: 50px;
+    margin-bottom: 10px;
+}
+
+/* =========================
+   MOBILE
+========================= */
+
+@media(max-width:700px) {
+
+    .header {
+        padding: 20px;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .overview {
+        padding: 10px 20px 20px;
+    }
+
+    #canvas {
+        margin: 0 10px 20px;
+        min-height: 900px;
+    }
+
+    .goal {
+        width: calc(100vw - 45px);
+    }
+
+    .grid {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+</style>
+</head>
+
+
+<body>
+
+<header class="header">
+
+    <div>
+        <div class="logo">✦ My Goal Universe</div>
+        <div class="subtitle">
+            Think it. See it. Move it. Make it real.
+        </div>
+    </div>
+
+    <div class="controls">
+
+        <input
+            id="search"
+            class="search"
+            placeholder="🔎 Find a goal..."
+        >
+
+        <button
+            class="btn"
+            onclick="addGoal()"
+        >
+            + New Goal
+        </button>
+
+    </div>
+
+</header>
+
+
+<section class="overview">
+
+    <div class="stat">
+        <div
+            class="stat-number"
+            id="totalGoals"
+        >0</div>
+
+        <div class="stat-label">
+            Goals
+        </div>
+    </div>
+
+
+    <div class="stat">
+        <div
+            class="stat-number"
+            id="averageProgress"
+        >0%</div>
+
+        <div class="stat-label">
+            Overall Progress
+        </div>
+    </div>
+
+
+    <div class="stat">
+        <div
+            class="stat-number"
+            id="smallCount"
+        >0</div>
+
+        <div class="stat-label">
+            Small
+        </div>
+    </div>
+
+
+    <div class="stat">
+        <div
+            class="stat-number"
+            id="bigCount"
+        >0</div>
+
+        <div class="stat-label">
+            Big
+        </div>
+    </div>
+
+
+    <div class="stat">
+        <div
+            class="stat-number"
+            id="futureCount"
+        >0</div>
+
+        <div class="stat-label">
+            Future
+        </div>
+    </div>
+
+</section>
+
+
+<main id="canvas">
+
+    <div class="star">✦</div>
+    <div class="star">✧</div>
+    <div class="star">✦</div>
+    <div class="star">✧</div>
+
+</main>
+
+
+<!-- =========================
+     EDIT MODAL
+========================= -->
+
+<div
+    class="modal"
+    id="modal"
+>
+
+<div class="modal-box">
+
+    <div class="modal-header">
+
+        <div
+            class="modal-title"
+            id="modalTitle"
+        >
+            Edit Goal
+        </div>
+
+        <button
+            class="close"
+            onclick="closeModal()"
+        >
+            ×
+        </button>
+
+    </div>
+
+
+    <div class="grid">
+
+        <div class="field">
+
+            <label>Goal</label>
+
+            <input
+                id="fTitle"
+                placeholder="What do you want?"
+            >
+
+        </div>
+
+
+        <div class="field">
+
+            <label>Category</label>
+
+            <select id="fCategory">
+
+                <option>Small</option>
+                <option>Big</option>
+                <option>Future</option>
+
+            </select>
+
+        </div>
+
+    </div>
+
+
+    <div class="field">
+
+        <label>Why?</label>
+
+        <textarea
+            id="fWhy"
+            placeholder="Why does this matter?"
+        ></textarea>
+
+    </div>
+
+
+    <div class="field">
+
+        <label>Success Definition</label>
+
+        <textarea
+            id="fSuccess"
+            placeholder="How will I know I achieved it?"
+        ></textarea>
+
+    </div>
+
+
+    <div class="field">
+
+        <label>Milestones</label>
+
+        <textarea
+            id="fMilestones"
+            placeholder="Break the goal into milestones..."
+        ></textarea>
+
+    </div>
+
+
+    <div class="field">
+
+        <label>Projects</label>
+
+        <textarea
+            id="fProjects"
+            placeholder="Projects that support this goal..."
+        ></textarea>
+
+    </div>
+
+
+    <div class="grid">
+
+        <div class="field">
+
+            <label>Next Action</label>
+
+            <input
+                id="fNext"
+                placeholder="What is the next tiny step?"
+            >
+
+        </div>
+
+
+        <div class="field">
+
+            <label>Progress %</label>
+
+            <input
+                id="fProgress"
+                type="number"
+                min="0"
+                max="100"
+                value="0"
+            >
+
+        </div>
+
+    </div>
+
+
+    <div class="field">
+
+        <label>Obstacles</label>
+
+        <textarea
+            id="fObstacles"
+            placeholder="What could stop me?"
+        ></textarea>
+
+    </div>
+
+
+    <div class="field">
+
+        <label>Resources</label>
+
+        <textarea
+            id="fResources"
+            placeholder="People, books, courses, websites, money, tools..."
+        ></textarea>
+
+    </div>
+
+
+    <div class="modal-actions">
+
+        <button
+            class="delete"
+            onclick="deleteCurrentGoal()"
+        >
+            Delete
+        </button>
+
+        <button
+            class="save"
+            onclick="saveGoal()"
+        >
+            ✨ Save Goal
+        </button>
+
+    </div>
+
+</div>
+
+</div>
+
+
+<script>
+
+/* =========================================
+   DATA
+========================================= */
+
+let goals = JSON.parse(
+    localStorage.getItem("goalUniverse")
+) || [
+
+    {
+        id: 1,
+
+        title: "Build My Dream Life",
+
+        category: "Big",
+
+        why: "I want freedom, stability and a life that feels like mine.",
+
+        success:
+        "Living in my preferred city, financially independent and surrounded by the right people.",
+
+        milestones:
+        "Define vision\nCreate income plan\nRelocate\nBuild network",
+
+        projects:
+        "Business\nPersonal brand\nRelocation plan",
+
+        next:
+        "Choose one income experiment",
+
+        obstacles:
+        "Overthinking\nToo many ideas\nFear of starting",
+
+        resources:
+        "Courses\nPeople\nBooks\nInternet",
+
+        progress: 25,
+
+        x: 80,
+
+        y: 80
+    }
+
+];
+
+
+/* =========================================
+   DOM
+========================================= */
+
+const canvas =
+    document.getElementById("canvas");
+
+const modal =
+    document.getElementById("modal");
+
+let currentGoal = null;
+
+
+/* =========================================
+   SAVE
+========================================= */
+
+function persist() {
+
+    localStorage.setItem(
+        "goalUniverse",
+        JSON.stringify(goals)
+    );
+
+    updateStats();
+}
+
+
+/* =========================================
+   RENDER
+========================================= */
+
+function render() {
+
+    document
+        .querySelectorAll(".goal")
+        .forEach(el => el.remove());
+
+    goals.forEach(goal => {
+
+        const card =
+            document.createElement("div");
+
+        card.className = "goal";
+
+        card.dataset.id = goal.id;
+
+        if(goal.progress >= 75)
+            card.dataset.progress = "high";
+
+        if(goal.progress >= 100)
+            card.dataset.progress = "complete";
+
+
+        card.style.left =
+            goal.x + "px";
+
+        card.style.top =
+            goal.y + "px";
+
+
+        card.innerHTML = `
+
+            <div class="category">
+                ${goal.category}
+            </div>
+
+            <div
+                class="goal-header"
+                data-drag="true"
+            >
+
+                <div class="goal-icon">
+                    ${getIcon(goal.category)}
+                </div>
+
+                <div
+                    class="goal-title"
+                >
+                    ${escapeHTML(goal.title)}
+                </div>
+
+                <div class="goal-menu">
+
+                    <button
+                        class="icon-btn edit"
+                        title="Edit"
+                    >
+                        ✎
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <div class="progress-area">
+
+                <div class="progress-top">
+
+                    <span>
+                        Progress
+                    </span>
+
+                    <strong>
+                        ${goal.progress}%
+                    </strong>
+
+                </div>
+
+                <div class="progress-bar">
+
+                    <div
+                        class="progress-fill"
+                        style="width:${goal.progress}%"
+                    ></div>
+
+                </div>
+
+                <input
+                    class="progress-slider"
+                    type="range"
+                    min="0"
+                    max="100"
+                    value="${goal.progress}"
+                >
+
+            </div>
+
+
+            <div class="quick">
+
+                <div class="quick-item">
+
+                    <div class="quick-label">
+                        Why?
+                    </div>
+
+                    <div class="quick-value">
+                        ${escapeHTML(
+                            shorten(goal.why)
+                        )}
+                    </div>
+
+                </div>
+
+
+                <div class="quick-item">
+
+                    <div class="quick-label">
+                        Next Action
+                    </div>
+
+                    <div class="quick-value">
+                        ${escapeHTML(
+                            shorten(goal.next)
+                        )}
+                    </div>
+
+                </div>
+
+
+                <div class="quick-item">
+
+                    <div class="quick-label">
+                        Milestones
+                    </div>
+
+                    <div class="quick-value">
+                        ${countLines(goal.milestones)}
+                    </div>
+
+                </div>
+
+
+                <div class="quick-item">
+
+                    <div class="quick-label">
+                        Projects
+                    </div>
+
+                    <div class="quick-value">
+                        ${countLines(goal.projects)}
+                    </div>
+
+                </div>
+
+            </div>
+
+        `;
+
+
+        canvas.appendChild(card);
+
+
+        /* EDIT */
+
+        card
+            .querySelector(".edit")
+            .addEventListener(
+                "click",
+                () => openModal(goal.id)
+            );
+
+
+        /* PROGRESS */
+
+        card
+            .querySelector(".progress-slider")
+            .addEventListener(
+                "input",
+                e => {
+
+                    goal.progress =
+                        Number(e.target.value);
+
+                    persist();
+
+                    render();
+
+                }
+            );
+
+
+        /* DRAG */
+
+        makeDraggable(
+            card,
+            goal
+        );
+
+    });
+
+    updateStats();
+
+}
+
+
+/* =========================================
+   ICONS
+========================================= */
+
+function getIcon(category) {
+
+    if(category === "Small")
+        return "☀";
+
+    if(category === "Big")
+        return "✦";
+
+    return "☾";
+
+}
+
+
+/* =========================================
+   DRAGGING
+========================================= */
+
+function makeDraggable(card, goal) {
+
+    const handle =
+        card.querySelector(".goal-header");
+
+    let dragging = false;
+
+    let offsetX = 0;
+    let offsetY = 0;
+
+
+    handle.addEventListener(
+        "pointerdown",
+        e => {
+
+            if(e.target.closest("button"))
+                return;
+
+            dragging = true;
+
+            card.classList.add("dragging");
+
+            const rect =
+                card.getBoundingClientRect();
+
+            offsetX =
+                e.clientX - rect.left;
+
+            offsetY =
+                e.clientY - rect.top;
+
+            handle.setPointerCapture(
+                e.pointerId
+            );
+
+        }
+    );
+
+
+    handle.addEventListener(
+        "pointermove",
+        e => {
+
+            if(!dragging)
+                return;
+
+            const canvasRect =
+                canvas.getBoundingClientRect();
+
+            let x =
+                e.clientX -
+                canvasRect.left -
+                offsetX;
+
+            let y =
+                e.clientY -
+                canvasRect.top -
+                offsetY;
+
+
+            x = Math.max(
+                5,
+                Math.min(
+                    x,
+                    canvas.clientWidth -
+                    card.offsetWidth -
+                    5
+                )
+            );
+
+
+            y = Math.max(
+                5,
+                Math.min(
+                    y,
+                    canvas.clientHeight -
+                    card.offsetHeight -
+                    5
+                )
+            );
+
+
+            card.style.left =
+                x + "px";
+
+            card.style.top =
+                y + "px";
+
+            goal.x = x;
+            goal.y = y;
+
+        }
+    );
+
+
+    handle.addEventListener(
+        "pointerup",
+        e => {
+
+            dragging = false;
+
+            card.classList.remove(
+                "dragging"
+            );
+
+            persist();
+
+        }
+    );
+
+}
+
+
+/* =========================================
+   ADD GOAL
+========================================= */
+
+function addGoal() {
+
+    const newGoal = {
+
+        id: Date.now(),
+
+        title: "New Goal",
+
+        category: "Small",
+
+        why: "",
+
+        success: "",
+
+        milestones: "",
+
+        projects: "",
+
+        next: "",
+
+        obstacles: "",
+
+        resources: "",
+
+        progress: 0,
+
+        x: 40 + Math.random() * 250,
+
+        y: 40 + Math.random() * 250
+
+    };
+
+
+    goals.push(newGoal);
+
+    persist();
+
+    render();
+
+    openModal(newGoal.id);
+
+}
+
+
+/* =========================================
+   EDIT MODAL
+========================================= */
+
+function openModal(id) {
+
+    currentGoal =
+        goals.find(
+            g => g.id === id
+        );
+
+    if(!currentGoal)
+        return;
+
+
+    document.getElementById(
+        "fTitle"
+    ).value =
+        currentGoal.title;
+
+
+    document.getElementById(
+        "fCategory"
+    ).value =
+        currentGoal.category;
+
+
+    document.getElementById(
+        "fWhy"
+    ).value =
+        currentGoal.why;
+
+
+    document.getElementById(
+        "fSuccess"
+    ).value =
+        currentGoal.success;
+
+
+    document.getElementById(
+        "fMilestones"
+    ).value =
+        currentGoal.milestones;
+
+
+    document.getElementById(
+        "fProjects"
+    ).value =
+        currentGoal.projects;
+
+
+    document.getElementById(
+        "fNext"
+    ).value =
+        currentGoal.next;
+
+
+    document.getElementById(
+        "fObstacles"
+    ).value =
+        currentGoal.obstacles;
+
+
+    document.getElementById(
+        "fResources"
+    ).value =
+        currentGoal.resources;
+
+
+    document.getElementById(
+        "fProgress"
+    ).value =
+        currentGoal.progress;
+
+
+    document.getElementById(
+        "modalTitle"
+    ).innerText =
+        "Edit: " + currentGoal.title;
+
+
+    modal.classList.add("active");
+
+}
+
+
+function closeModal() {
+
+    modal.classList.remove(
+        "active"
+    );
+
+    currentGoal = null;
+
+}
+
+
+/* =========================================
+   SAVE GOAL
+========================================= */
+
+function saveGoal() {
+
+    if(!currentGoal)
+        return;
+
+
+    currentGoal.title =
+        document.getElementById(
+            "fTitle"
+        ).value;
+
+
+    currentGoal.category =
+        document.getElementById(
+            "fCategory"
+        ).value;
+
+
+    currentGoal.why =
+        document.getElementById(
+            "fWhy"
+        ).value;
+
+
+    currentGoal.success =
+        document.getElementById(
+            "fSuccess"
+        ).value;
+
+
+    currentGoal.milestones =
+        document.getElementById(
+            "fMilestones"
+        ).value;
+
+
+    currentGoal.projects =
+        document.getElementById(
+            "fProjects"
+        ).value;
+
+
+    currentGoal.next =
+        document.getElementById(
+            "fNext"
+        ).value;
+
+
+    currentGoal.obstacles =
+        document.getElementById(
+            "fObstacles"
+        ).value;
+
+
+    currentGoal.resources =
+        document.getElementById(
+            "fResources"
+        ).value;
+
+
+    currentGoal.progress =
+        Math.max(
+            0,
+            Math.min(
+                100,
+                Number(
+                    document.getElementById(
+                        "fProgress"
+                    ).value
+                )
+            )
+        );
+
+
+    persist();
+
+    render();
+
+    closeModal();
+
+}
+
+
+/* =========================================
+   DELETE
+========================================= */
+
+function deleteCurrentGoal() {
+
+    if(!currentGoal)
+        return;
+
+
+    if(
+        !confirm(
+            "Delete this goal?"
+        )
+    )
+        return;
+
+
+    goals =
+        goals.filter(
+            g =>
+                g.id !== currentGoal.id
+        );
+
+
+    persist();
+
+    render();
+
+    closeModal();
+
+}
+
+
+/* =========================================
+   SEARCH
+========================================= */
+
+document
+    .getElementById("search")
+    .addEventListener(
+        "input",
+        e => {
+
+            const query =
+                e.target.value
+                    .toLowerCase()
+                    .trim();
+
+
+            document
+                .querySelectorAll(".goal")
+                .forEach(card => {
+
+                    const id =
+                        Number(
+                            card.dataset.id
+                        );
+
+                    const goal =
+                        goals.find(
+                            g =>
+                                g.id === id
+                        );
+
+
+                    const text =
+                        JSON.stringify(
+                            goal
+                        ).toLowerCase();
+
+
+                    card.style.display =
+                        text.includes(query)
+                            ? "block"
+                            : "none";
+
+                });
+
+        }
+    );
+
+
+/* =========================================
+   STATISTICS
+========================================= */
+
+function updateStats() {
+
+    document.getElementById(
+        "totalGoals"
+    ).innerText =
+        goals.length;
+
+
+    const average =
+        goals.length
+            ? Math.round(
+                goals.reduce(
+                    (sum,g) =>
+                        sum + g.progress,
+                    0
+                ) / goals.length
+            )
+            : 0;
+
+
+    document.getElementById(
+        "averageProgress"
+    ).innerText =
+        average + "%";
+
+
+    document.getElementById(
+        "smallCount"
+    ).innerText =
+        goals.filter(
+            g => g.category === "Small"
+        ).length;
+
+
+    document.getElementById(
+        "bigCount"
+    ).innerText =
+        goals.filter(
+            g => g.category === "Big"
+        ).length;
+
+
+    document.getElementById(
+        "futureCount"
+    ).innerText =
+        goals.filter(
+            g => g.category === "Future"
+        ).length;
+
+}
+
+
+/* =========================================
+   HELPERS
+========================================= */
+
+function shorten(text) {
+
+    if(!text)
+        return "—";
+
+    return text.length > 45
+        ? text.substring(0,45) + "…"
+        : text;
+
+}
+
+
+function countLines(text) {
+
+    if(!text)
+        return "0 items";
+
+    const count =
+        text
+            .split("\n")
+            .filter(x => x.trim())
+            .length;
+
+    return count +
+        (count === 1
+            ? " item"
+            : " items");
+
+}
+
+
+function escapeHTML(text) {
+
+    if(!text)
+        return "";
+
+    return text
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+        .replace(
+            /</g,
+            "&lt;"
+        )
+        .replace(
+            />/g,
+            "&gt;"
+        )
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+}
+
+
+/* =========================================
+   CLOSE MODAL ON BACKDROP
+========================================= */
+
+modal.addEventListener(
+    "click",
+    e => {
+
+        if(
+            e.target === modal
+        )
+            closeModal();
+
+    }
+);
+
+
+/* =========================================
+   INITIALIZE
+========================================= */
+
+render();
+
+</script>
+
+</body>
+</html>
