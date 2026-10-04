@@ -3,19 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ADHD Goal Tracker & Monthly Task Widget</title>
+  <title>ADHD Goal Tracker & Task Manager</title>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
   <style>
     :root {
-      /* Main Pastel Theme */
       --bg-color: #FCEFE7;
       --card-border: #E8D5C4;
       --text-dark: #2C3531;
       --primary-green: #6F8070;
       --primary-green-hover: #5A6A5B;
 
-      /* Goal Type Aesthetics */
       --small-bg: #E2ECE4;
       --small-border: #A3B899;
 
@@ -134,7 +132,7 @@
       white-space: nowrap;
     }
 
-    /* --- SIMPLIFIED MONTHLY TASKS WIDGET --- */
+    /* --- ADD TASK / GOAL BAR WITH FOLDER SELECTOR --- */
     .quick-widget-card {
       background: #FFFFFF;
       border: 1.5px solid var(--card-border);
@@ -162,20 +160,36 @@
 
     .quick-add-bar {
       display: flex;
+      flex-wrap: wrap;
       gap: 8px;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
     }
 
-    .quick-add-bar input {
-      flex: 1;
+    .quick-add-bar input[type="text"] {
+      flex: 2;
+      min-width: 180px;
       border: 1px solid var(--card-border);
       border-radius: 10px;
-      padding: 7px 12px;
+      padding: 8px 12px;
       font-size: 12px;
       outline: none;
     }
 
-    .quick-add-bar input:focus {
+    .quick-add-bar select {
+      flex: 1;
+      min-width: 140px;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 12px;
+      background: #FFFFFF;
+      color: var(--text-dark);
+      outline: none;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .quick-add-bar input:focus, .quick-add-bar select:focus {
       border-color: var(--primary-green);
     }
 
@@ -335,7 +349,6 @@
 
     .delete-btn:hover { opacity: 1; }
 
-    /* Progress Bar */
     .progress-container {
       display: flex;
       flex-direction: column;
@@ -371,7 +384,6 @@
       cursor: pointer;
     }
 
-    /* Highlighted Next Action Box */
     .next-action-container {
       background: #FFFFFF;
       border: 1.5px solid var(--primary-green);
@@ -407,7 +419,6 @@
       background: #FFFFFF;
     }
 
-    /* Collapsible Details */
     details {
       font-size: 11px;
       background: rgba(255, 255, 255, 0.6);
@@ -504,9 +515,6 @@
     <header>
       <div class="nav-actions">
         <button class="btn" onclick="triggerTodaysMove()">🎯 Today's One Move</button>
-        <button class="btn btn-secondary" onclick="addGoal('small')">🌱 + Small Goal</button>
-        <button class="btn btn-secondary" onclick="addGoal('big')">✦ + Big Goal</button>
-        <button class="btn btn-secondary" onclick="addGoal('future')">☾ + Future Goal</button>
       </div>
 
       <div class="nav-actions">
@@ -515,20 +523,30 @@
       </div>
     </header>
 
-    <!-- ⚡ SIMPLIFIED QUICK MONTHLY FOCUS WIDGET -->
+    <!-- ⚡ QUICK ADD BAR WITH FOLDER / CATEGORY SELECTOR -->
     <div class="quick-widget-card">
       <div class="widget-header">
-        <div class="widget-title">📌 Main Tasks for the Month (Quick View)</div>
-        <span style="font-size: 11px; opacity: 0.7;" id="monthly-count">0 tasks</span>
+        <div class="widget-title">➕ Quick Add Goal / Task</div>
       </div>
 
       <div class="quick-add-bar">
-        <input type="text" id="monthly-task-input" placeholder="Add quick monthly task..." onkeydown="handleMonthlyTaskKey(event)">
-        <button class="btn" onclick="addMonthlyTask()">+ Add Task</button>
+        <input type="text" id="quick-input" placeholder="Enter title or task..." onkeydown="handleQuickKey(event)">
+        <select id="quick-category-select">
+          <option value="small">🌱 Small Goals</option>
+          <option value="big">✦ Big Goals</option>
+          <option value="future">☾ Future Goals</option>
+          <option value="monthly">📌 Monthly Focus Task</option>
+        </select>
+        <button class="btn" onclick="addQuickItem()">+ Add Item</button>
       </div>
 
-      <div class="monthly-task-list" id="monthly-task-container">
-        <!-- Dynamically populated -->
+      <!-- Quick Monthly Tasks View -->
+      <div style="margin-top: 10px;">
+        <div class="widget-header">
+          <span style="font-size: 12px; font-weight: 700; color: var(--primary-green);">📌 Monthly Focus Tasks</span>
+          <span style="font-size: 11px; opacity: 0.7;" id="monthly-count">0 tasks</span>
+        </div>
+        <div class="monthly-task-list" id="monthly-task-container"></div>
       </div>
     </div>
 
@@ -590,8 +608,8 @@
     let monthlyTasks = [];
     let streakData = { count: 0, lastActiveDate: null };
     let collapsedState = { small: false, big: false, future: false };
+    let openDetailsMap = {};
 
-    // Audio Context Synthesizer (Web Audio API)
     let audioCtx = null;
 
     function playSynthesizedChime() {
@@ -603,7 +621,7 @@
           audioCtx.resume();
         }
 
-        const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+        const notes = [523.25, 659.25, 783.99, 1046.50];
         notes.forEach((freq, idx) => {
           const osc = audioCtx.createOscillator();
           const gain = audioCtx.createGain();
@@ -621,7 +639,7 @@
           osc.stop(audioCtx.currentTime + idx * 0.08 + 0.45);
         });
       } catch (e) {
-        console.log("Audio play blocked or unsupported:", e);
+        console.log("Audio play prevented:", e);
       }
     }
 
@@ -655,35 +673,55 @@
       }
     }
 
-    /* --- QUICK MONTHLY TASKS HANDLERS --- */
-    function handleMonthlyTaskKey(e) {
-      if (e.key === 'Enter') addMonthlyTask();
+    function handleQuickKey(e) {
+      if (e.key === 'Enter') addQuickItem();
     }
 
-    function addMonthlyTask() {
-      const input = document.getElementById('monthly-task-input');
+    function addQuickItem() {
+      const input = document.getElementById('quick-input');
+      const categorySelect = document.getElementById('quick-category-select');
       const val = input.value.trim();
       if (!val) return;
 
-      monthlyTasks.unshift({
-        id: 'm_' + Date.now(),
-        text: val,
-        done: false
-      });
+      const category = categorySelect.value;
+
+      if (category === 'monthly') {
+        monthlyTasks.unshift({
+          id: 'm_' + Date.now(),
+          text: val,
+          done: false
+        });
+      } else {
+        collapsedState[category] = false;
+        const id = 'g_' + Date.now() + Math.floor(Math.random() * 1000);
+        goals.unshift({
+          id,
+          type: category,
+          title: val,
+          progress: 0,
+          nextAction: '',
+          deadline: '',
+          why: '',
+          successDef: '',
+          projects: '',
+          obstacles: '',
+          resources: '',
+          milestones: []
+        });
+        openDetailsMap[id] = false;
+      }
 
       input.value = '';
       registerActivity();
       saveData();
-      renderMonthlyTasks();
+      render();
     }
 
     function toggleMonthlyTask(id) {
       const task = monthlyTasks.find(t => t.id === id);
       if (task) {
         task.done = !task.done;
-        if (task.done) {
-          triggerCelebration();
-        }
+        if (task.done) triggerCelebration();
         registerActivity();
         saveData();
         renderMonthlyTasks();
@@ -722,7 +760,6 @@
       });
     }
 
-    /* --- STREAK & GOALS HANDLERS --- */
     function checkDailyStreak() {
       const today = new Date().toISOString().split('T')[0];
       if (streakData.lastActiveDate) {
@@ -754,11 +791,8 @@
     function toggleSection(type) {
       collapsedState[type] = !collapsedState[type];
       const sec = document.getElementById(`sec-${type}`);
-      if (collapsedState[type]) {
-        sec.classList.add('collapsed');
-      } else {
-        sec.classList.remove('collapsed');
-      }
+      if (collapsedState[type]) sec.classList.add('collapsed');
+      else sec.classList.remove('collapsed');
       saveData();
     }
 
@@ -768,38 +802,6 @@
         if (collapsedState[type]) sec.classList.add('collapsed');
         else sec.classList.remove('collapsed');
       });
-    }
-
-    function addGoal(type = 'small') {
-      collapsedState[type] = false; // ensure expanded
-      const id = 'g_' + Date.now() + Math.random().toString(36).substr(2, 4);
-      const newGoal = {
-        id,
-        type,
-        title: '',
-        progress: 0,
-        nextAction: '',
-        deadline: '',
-        why: '',
-        successDef: '',
-        projects: '',
-        obstacles: '',
-        resources: '',
-        milestones: []
-      };
-      goals.unshift(newGoal);
-      registerActivity();
-      saveData();
-      render();
-
-      setTimeout(() => {
-        const el = document.getElementById(id);
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          const titleInput = el.querySelector('.goal-title-input');
-          if (titleInput) titleInput.focus();
-        }
-      }, 100);
     }
 
     function updateGoal(id, key, val) {
@@ -816,9 +818,7 @@
       if (g) {
         const prev = g.progress;
         g.progress = parseInt(val);
-        if (g.progress === 100 && prev < 100) {
-          triggerCelebration();
-        }
+        if (g.progress === 100 && prev < 100) triggerCelebration();
         registerActivity();
         saveData();
         render();
@@ -827,6 +827,7 @@
 
     function deleteGoal(id) {
       goals = goals.filter(item => item.id !== id);
+      delete openDetailsMap[id];
       saveData();
       render();
     }
@@ -836,6 +837,7 @@
       if (g) {
         if (!g.milestones) g.milestones = [];
         g.milestones.push({ text: 'New step', done: false });
+        openDetailsMap[goalId] = true;
         saveData();
         render();
       }
@@ -845,9 +847,7 @@
       const g = goals.find(item => item.id === goalId);
       if (g && g.milestones[idx]) {
         g.milestones[idx].done = !g.milestones[idx].done;
-        if (g.milestones[idx].done) {
-          triggerCelebration();
-        }
+        if (g.milestones[idx].done) triggerCelebration();
         saveData();
         render();
       }
@@ -861,7 +861,17 @@
       }
     }
 
+    function recordOpenDetails() {
+      document.querySelectorAll('details').forEach(el => {
+        const card = el.closest('.goal-card');
+        if (card) {
+          openDetailsMap[card.id] = el.open;
+        }
+      });
+    }
+
     function render() {
+      recordOpenDetails();
       syncSectionCollapseStates();
       renderMonthlyTasks();
 
@@ -874,7 +884,7 @@
         countBadge.innerText = typeGoals.length;
 
         if (typeGoals.length === 0) {
-          container.innerHTML = `<div class="empty-section-msg">No goals here yet. Click header button to add!</div>`;
+          container.innerHTML = `<div class="empty-section-msg">No goals here yet. Add one using the top bar!</div>`;
           return;
         }
 
@@ -891,6 +901,8 @@
             card.style.borderColor = '#10B981';
           }
 
+          const isOpen = openDetailsMap[goal.id] ? 'open' : '';
+
           card.innerHTML = `
             <div class="card-top">
               <input type="text" class="goal-title-input" placeholder="Goal Title..." 
@@ -898,7 +910,6 @@
               <button class="delete-btn" onclick="deleteGoal('${goal.id}')" title="Delete Goal">✕</button>
             </div>
 
-            <!-- Progress Bar -->
             <div class="progress-container">
               <div class="progress-header">
                 <span>Progress</span>
@@ -911,7 +922,6 @@
                      oninput="updateProgress('${goal.id}', this.value)">
             </div>
 
-            <!-- Next Action -->
             <div class="next-action-container">
               <div class="field-label">
                 <span>⚡ Next Action</span>
@@ -921,8 +931,7 @@
                      value="${escapeHtml(goal.nextAction)}" onchange="updateGoal('${goal.id}', 'nextAction', this.value)">
             </div>
 
-            <!-- Collapsible 7 Breakdown Fields Details -->
-            <details>
+            <details ${isOpen} ontoggle="openDetailsMap['${goal.id}'] = this.open">
               <summary>🧩 All Goal Details (Why, Steps, Obstacles...)</summary>
               <div class="details-grid">
 
